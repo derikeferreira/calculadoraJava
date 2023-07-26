@@ -1,7 +1,9 @@
 package com.derikeferreira.calculadora;
 
 import androidx.appcompat.app.AppCompatActivity;
-
+import net.objecthunter.exp4j.Expression;
+import net.objecthunter.exp4j.ExpressionBuilder;
+import net.objecthunter.exp4j.ValidationResult;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.View;
@@ -16,8 +18,9 @@ public class MainActivity extends AppCompatActivity {
     private Button btnNum1, btnNum2, btnNum3, btnNum4, btnNum5, btnNum6, btnNum7, btnNum8, btnNum9, btnNum0;
     private Button btnSomar, btnDividir, btnSubtrair, btnMultiplicar, btnCalculo, btnPorcentagem;
     private Button btnLimpaTudo, btnParenteses, btnVirgula, btnPositivoNegativo;
-    private String strNumAntesSinal, strNumDepoisSinal;
+    private String strCalculo;
 
+    boolean calculoFeito = false;
     private ImageView imgDeletaUmNumero;
 
     private TextView txtResultado;
@@ -27,8 +30,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
 
         btnNum0 = findViewById(R.id.btnNum0);
         btnNum1 = findViewById(R.id.btnNum1);
@@ -40,6 +41,10 @@ public class MainActivity extends AppCompatActivity {
         btnNum7 = findViewById(R.id.btnNum7);
         btnNum8 = findViewById(R.id.btnNum8);
         btnNum9 = findViewById(R.id.btnNum9);
+
+        btnPositivoNegativo = findViewById(R.id.btnMaisouMenos);
+
+        btnParenteses = findViewById(R.id.btnParenteses);
 
         btnSubtrair = findViewById(R.id.btnSubtracao);
 
@@ -61,6 +66,25 @@ public class MainActivity extends AppCompatActivity {
 
         btnCalculo = findViewById(R.id.btnCalculo);
 
+
+        btnParenteses.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Toast.makeText(MainActivity.this, "Desativado.", Toast.LENGTH_LONG).show();
+
+            }
+        });
+
+        btnPositivoNegativo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Toast.makeText(MainActivity.this, "Desativado.", Toast.LENGTH_LONG).show();
+
+            }
+        });
+
         btnCalculo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -78,14 +102,14 @@ public class MainActivity extends AppCompatActivity {
         btnPorcentagem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setClickInf("%");
+                Toast.makeText(MainActivity.this, "Desativado.", Toast.LENGTH_LONG).show();
             }
         });
 
         btnMultiplicar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setClickInf("x");
+                setClickInf("*");
             }
         });
 
@@ -93,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                setClickInf("÷");
+                setClickInf("/");
             }
         });
 
@@ -112,8 +136,8 @@ public class MainActivity extends AppCompatActivity {
         btnLimpaTudo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                strNumAntesSinal = null;
-                txtResultado.setText(strNumAntesSinal);
+                strCalculo = null;
+                txtResultado.setText(strCalculo);
 
             }
         });
@@ -122,15 +146,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                if (strNumAntesSinal != null) {
+                if (strCalculo != null) {
 
-                    if (strNumAntesSinal.length() > 0) {
+                    if (strCalculo.length() > 0) {
 
-                        strNumAntesSinal = strNumAntesSinal.substring(0, strNumAntesSinal.length() - 1);
-                        txtResultado.setText(strNumAntesSinal);
+                        strCalculo = strCalculo.substring(0, strCalculo.length() - 1);
+                        txtResultado.setText(strCalculo);
 
                     }else {
-                        strNumAntesSinal = null;
+                        strCalculo = null;
                     }
                 }
             }
@@ -142,13 +166,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                if(achaSimbolo(strNumAntesSinal, ",")){
+                Toast.makeText(MainActivity.this, "Desativado.", Toast.LENGTH_LONG).show();
+              //  if(achaSimbolo(strCalculo, ",")){
 
                     //faz nada
 
-                } else{
-                    setClickInf(",");
-                }
+               // } else{
+               //     setClickInf(",");
+               // }
 
             }
         });
@@ -272,12 +297,33 @@ public class MainActivity extends AppCompatActivity {
 
     public void calculoFinal(){
 
+        if (strCalculo != null) {
+            // Criar uma expressão a partir da string
+            Expression expression = new ExpressionBuilder(strCalculo).build();
+
+            // Verificar se a expressão é válida
+            ValidationResult validationResult = expression.validate();
+            if (!validationResult.isValid()) {
+                System.out.println("Expressão inválida: " + validationResult.getErrors());
+                return;
+            }
+
+            // Avaliar a expressão e obter o resultado
+            double resultado = expression.evaluate();
+
+            strCalculo = String.valueOf(resultado);
+            txtResultado.setText(strCalculo);
+            calculoFeito = true;
+
+        }else {Toast.makeText(MainActivity.this, "Formato usado inválido.", Toast.LENGTH_LONG).show();}
+
 
     }
 
     public void setClickInf(String sinalFunc){
-        strNumAntesSinal = verificaSeENull(strNumAntesSinal,sinalFunc);
-        txtResultado.setText(strNumAntesSinal);
+
+        strCalculo = verificaSeENull(strCalculo,sinalFunc);
+        txtResultado.setText(strCalculo);
     }
 
 
@@ -295,22 +341,17 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public String verificaSeENull(String strNumAntesSinalF, String opcaoBtn){
+    public String verificaSeENull(String strCalculoF, String opcaoBtn){
 
-        if(strNumAntesSinalF == null ){
+        if(strCalculoF == null ){ ///Verifica se o usuario digitou um numero antes do sinal
 
-            if(opcaoBtn == ","){
-                return "0,";
-            } else if (opcaoBtn == "+") {
+            if (opcaoBtn == "+") {
                 Toast.makeText(MainActivity.this, "Formato usado inválido.", Toast.LENGTH_LONG).show();
                 return null;
-            } else if (opcaoBtn == "÷") {
+            } else if (opcaoBtn == "/") {
                 Toast.makeText(MainActivity.this, "Formato usado inválido.", Toast.LENGTH_LONG).show();
                 return null;
-            }else if (opcaoBtn == "x") {
-                Toast.makeText(MainActivity.this, "Formato usado inválido.", Toast.LENGTH_LONG).show();
-                return null;
-            }else if (opcaoBtn == "%") {
+            }else if (opcaoBtn == "*") {
                 Toast.makeText(MainActivity.this, "Formato usado inválido.", Toast.LENGTH_LONG).show();
                 return null;
             }else if (opcaoBtn == "-") {
@@ -322,63 +363,37 @@ public class MainActivity extends AppCompatActivity {
 
         }else{
 
-            if(opcaoBtn == "+"){
+            if(opcaoBtn == "+" || opcaoBtn == "/" || opcaoBtn == "*" || opcaoBtn == "-" ){
 
-                if( strNumAntesSinal.substring(strNumAntesSinal.length()-1).equals("+")){
+                if( strCalculo.substring(strCalculo.length()-1).equals("+")){
                     //faz nada
-                }else{
-
-                    strNumAntesSinalF = strNumAntesSinalF + opcaoBtn;
-
-                }
-
-            }else if(opcaoBtn == "÷"){
-
-                if( strNumAntesSinal.substring(strNumAntesSinal.length()-1).equals("÷")){
+                } else if (strCalculo.substring(strCalculo.length()-1).equals("/")) {
                     //faz nada
-                }else{
-
-                    strNumAntesSinalF = strNumAntesSinalF + opcaoBtn;
-
-                }
-
-            }else if(opcaoBtn == "x"){
-
-                if( strNumAntesSinal.substring(strNumAntesSinal.length()-1).equals("x")){
+                } else if (strCalculo.substring(strCalculo.length()-1).equals("*")) {
                     //faz nada
-                }else{
-
-                    strNumAntesSinalF = strNumAntesSinalF + opcaoBtn;
-
-                }
-
-            }else if(opcaoBtn == "%"){
-
-                if( strNumAntesSinal.substring(strNumAntesSinal.length()-1).equals("%")){
+                } else if (strCalculo.substring(strCalculo.length()-1).equals("-")) {
                     //faz nada
-                }else{
+                } else{
 
-                    strNumAntesSinalF = strNumAntesSinalF + opcaoBtn;
-
-                }
-
-            }else if(opcaoBtn == "-"){
-
-                if( strNumAntesSinal.substring(strNumAntesSinal.length()-1).equals("-")){
-                    //faz nada
-                }else{
-
-                    strNumAntesSinalF = strNumAntesSinalF + opcaoBtn;
+                    if (calculoFeito == true){
+                        calculoFeito = false;
+                    }
+                    strCalculoF = strCalculoF + opcaoBtn;
 
                 }
 
             }else {
 
-                strNumAntesSinalF = strNumAntesSinalF + opcaoBtn;
+                if (calculoFeito == true){
+                    strCalculoF = "";
+                    calculoFeito = false;
+                }
+
+                strCalculoF = strCalculoF + opcaoBtn;
 
             }
 
-            return strNumAntesSinalF;
+            return strCalculoF;
         }
     }
 }
